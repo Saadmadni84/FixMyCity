@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Build and generated output
+dist/
+.api/
+coverage/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Logs and OS files
+*.log
+.DS_Store

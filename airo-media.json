@@ -1,0 +1,32 @@
+{
+  "pages/home/hero": {
+    "mediaType": "image",
+    "currentUrl": "https://img1.wsimg.com/isteam/getty/2025098796",
+    "searchQuery": "modern Indian city skyline aerial view urban infrastructure smart city",
+    "alternatives": [
+      "https://img1.wsimg.com/isteam/getty/2199358163",
+      "https://img1.wsimg.com/isteam/getty/1408905129",
+      "https://img1.wsimg.com/isteam/getty/2256067937",
+      "https://img1.wsimg.com/isteam/getty/2236903967"
+    ],
+    "userModified": false,
+    "createdAt": "2026-04-14T11:25:18.984Z",
+    "lastUpdated": "2026-04-14T12:21:13.374Z",
+    "gettyId": "2025098796",
+    "alternativeGettyIds": [
+      "2199358163",
+      "1408905129",
+      "2256067937",
+      "2236903967"
+    ],
+    "requestedSize": {
+      "width": 1920,
+      "height": 1080,
+      "fit": "cover"
+    },
+    "orientations": "horizontal",
+    "compositions": "wide_shot",
+    "moods": "dramatic,bold",
+    "minimumSize": "x_large"
+  }
+}

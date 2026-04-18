@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>App Template</title>
+    <!-- Google Translate -->
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement(
+          { pageLanguage: 'en', autoDisplay: false },
+          'google_translate_element'
+        );
+      }
+    </script>
+    <script type="text/javascript"
+      src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
+    </script>
+    <style>
+      /* Hide the Google Translate toolbar banner */
+      .goog-te-banner-frame, .goog-te-balloon-frame { display: none !important; }
+      body { top: 0 !important; }
+      .skiptranslate { display: none !important; }
+    </style>
+  </head>
+  <body class="fs-unmask-airo-app-builder">
+    <div id="app" class="fs-unmask-airo-app-builder"></div>
+    <script type="module">
+      if (import.meta.env.MODE === 'development') {
+        await import('/dev-tools/src/error-client.ts')
+      }
+      import('/src/main.tsx').catch(err => {
+        window.dispatchEvent(new CustomEvent('vite:initial-error', { detail: err }));
+      })
+    </script>
+    <script src="/analytics.js"></script>
+  </body>
+</html>
