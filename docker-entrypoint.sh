@@ -9,6 +9,9 @@ DB_PORT="${DB_PORT:-3306}"
 DB_USER="${DB_USER:-fixmycity}"
 DB_PASS="${DB_PASS:-fixmycity_pass}"
 DB_NAME="${DB_NAME:-fixmycity}"
+DB_SSL="${DB_SSL:-false}"
+DB_SSL_REJECT_UNAUTHORIZED="${DB_SSL_REJECT_UNAUTHORIZED:-false}"
+DB_SSL_CA="${DB_SSL_CA:-}"
 
 cat > "$NOMAD_ALLOC_DIR/config.json" <<EOF
 {
@@ -18,7 +21,10 @@ cat > "$NOMAD_ALLOC_DIR/config.json" <<EOF
       "PORT": "$DB_PORT",
       "USERNAME": "$DB_USER",
       "PASSWORD": "$DB_PASS",
-      "NAME": "$DB_NAME"
+      "NAME": "$DB_NAME",
+      "SSL": "$DB_SSL",
+      "SSL_REJECT_UNAUTHORIZED": "$DB_SSL_REJECT_UNAUTHORIZED",
+      "SSL_CA": "$DB_SSL_CA"
     }
   }
 }
@@ -37,6 +43,16 @@ const cfg = {
   password: process.env.DB_PASS || "fixmycity_pass",
   database: process.env.DB_NAME || "fixmycity",
 };
+const sslEnabled = String(process.env.DB_SSL || "false").toLowerCase() === "true";
+if (sslEnabled) {
+  cfg.ssl = {
+    rejectUnauthorized:
+      String(process.env.DB_SSL_REJECT_UNAUTHORIZED || "false").toLowerCase() === "true",
+  };
+  if (process.env.DB_SSL_CA) {
+    cfg.ssl.ca = process.env.DB_SSL_CA;
+  }
+}
 (async () => {
   for (let i = 1; i <= 60; i++) {
     try {
@@ -55,4 +71,4 @@ const cfg = {
 })();
 '
 
-exec npm run dev -- --host 0.0.0.0 --port "${PORT:-5173}"
+exec npm run preview -- --host 0.0.0.0 --port "${PORT:-5173}"

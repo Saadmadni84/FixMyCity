@@ -38,6 +38,7 @@ import { useAuth } from "@/lib/auth-context";
 import { KNOWN_AREAS, inferWardFromText } from "@/lib/area-ward";
 import { WARDS, normalizeWard } from "@/lib/wards";
 import { toast } from "sonner";
+import { apiUrl } from "@/lib/api-url";
 
 const categories = [
   {
@@ -311,7 +312,7 @@ export default function ReportPage() {
 
     setSubmitting(true);
     try {
-      const res = await fetch("/api/issues", {
+      const res = await fetch(apiUrl("/api/issues"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

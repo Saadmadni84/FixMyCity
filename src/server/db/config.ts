@@ -15,6 +15,9 @@ export interface DatabaseCredentials {
   user: string;
   password: string;
   database: string;
+  ssl: boolean;
+  sslRejectUnauthorized: boolean;
+  sslCa?: string;
 }
 
 /**
@@ -54,6 +57,10 @@ export function getDatabaseCredentials(): DatabaseCredentials {
       user: db.USERNAME,
       password: db.PASSWORD,
       database: db.NAME,
+      ssl: String(db.SSL || "false").toLowerCase() === "true",
+      sslRejectUnauthorized:
+        String(db.SSL_REJECT_UNAUTHORIZED || "false").toLowerCase() === "true",
+      sslCa: db.SSL_CA ? String(db.SSL_CA) : undefined,
     };
   } catch (error) {
     if (error instanceof SyntaxError) {

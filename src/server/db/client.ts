@@ -11,16 +11,21 @@ import * as schema from "./schema";
 // Get database configuration
 const dbConfig = getDatabaseCredentials();
 
-// Create MySQL connection pool with SSL enabled
+const sslConfig = dbConfig.ssl
+  ? {
+      rejectUnauthorized: dbConfig.sslRejectUnauthorized,
+      ...(dbConfig.sslCa ? { ca: dbConfig.sslCa } : {}),
+    }
+  : undefined;
+
+// Create MySQL connection pool
 const poolConnection = mysql.createPool({
   host: dbConfig.host,
   port: dbConfig.port,
   user: dbConfig.user,
   password: dbConfig.password,
   database: dbConfig.database,
-  ssl: {
-    rejectUnauthorized: false,
-  },
+  ...(sslConfig ? { ssl: sslConfig } : {}),
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,

@@ -25,9 +25,14 @@ export default defineConfig({
     user: credentials.user,
     password: credentials.password,
     database: credentials.database,
-    ssl: {
-      rejectUnauthorized: false,
-    }
+    ...(credentials.ssl
+      ? {
+          ssl: {
+            rejectUnauthorized: credentials.sslRejectUnauthorized,
+            ...(credentials.sslCa ? { ca: credentials.sslCa } : {}),
+          },
+        }
+      : {}),
   },
   verbose: true,
   strict: false,

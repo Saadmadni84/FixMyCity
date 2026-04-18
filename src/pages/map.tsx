@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 
 // Leaflet CSS
 import 'leaflet/dist/leaflet.css';
+import { apiUrl } from "@/lib/api-url";
 
 interface Issue {
   id: number;
@@ -99,7 +100,7 @@ export default function MapPage() {
   const fetchIssues = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/issues');
+      const res = await fetch(apiUrl('/api/issues'));
       const data = await res.json();
       setIssues(data.issues || []);
     } catch {
