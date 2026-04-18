@@ -342,18 +342,4 @@ export default defineConfig({
 
 MIT License - feel free to use this template for any project.
 
-## 🙏 Acknowledgments
 
-Built with amazing open-source tools:
-
-- [Vite](https://vitejs.dev/)
-- [React](https://react.dev/)
-- [shadcn/ui](https://ui.shadcn.com/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Framer Motion](https://www.framer.com/motion/)
-- [Vitest](https://vitest.dev/)
-
----
-
-**Happy coding! 🎉**
