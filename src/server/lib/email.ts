@@ -7,6 +7,10 @@ const transporter = nodemailer.createTransport({
   tls: { rejectUnauthorized: false },
 });
 
+export async function verifyEmailTransport(): Promise<void> {
+  await transporter.verify();
+}
+
 export interface StatusEmailOptions {
   toEmail: string;
   toName: string;

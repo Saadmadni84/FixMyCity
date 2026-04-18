@@ -73,6 +73,12 @@ if (corsOrigins.length === 0) {
 }
 
 export default defineConfig(({ mode }) => ({
+  // Vercel static builds should use plain Vite output (dist/) without API-routes build hooks.
+  // The API server is deployed separately (Docker/full-stack flow).
+  define: {
+    __IS_VERCEL_BUILD__: JSON.stringify(Boolean(process.env.VERCEL)),
+  },
+
   // Expose SITE_ID to import.meta.env (same as app id) for client deep links; keep VITE_ as default
   envPrefix: ["VITE_", "SITE_"],
 
@@ -82,16 +88,18 @@ export default defineConfig(({ mode }) => ({
       plugins: [sourceMapperPlugin]
     }
   }),
+  ...(process.env.VERCEL ? [] : [
   apiRoutes({
     mode: "isolated",
     configure: "src/server/configure.js",
     dirs: [{ dir: "./src/server/api", route: "" }],
     forceRestart: mode === "development"
   }),
+  ]),
   ...(mode === "development" ?
   [devToolsPlugin() as Plugin, fullStoryPlugin(), errorInterceptorPlugin(), mediaVersionsPlugin() as Plugin] :
   []),
-  serverBundlePlugin()],
+  ...(process.env.VERCEL ? [] : [serverBundlePlugin()])],
 
 
   resolve: {
@@ -136,6 +144,8 @@ export default defineConfig(({ mode }) => ({
   },
 
   build: {
+    // vite-plugin-api-routes injects a build.watch config; force disable it for CI/hosting builds.
+    watch: null,
     rollupOptions: {
       output: {
         manualChunks: {
