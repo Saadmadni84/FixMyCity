@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/lib/auth-context";
+import { apiFetch } from "@/lib/api-client";
 import { WARDS } from "@/lib/wards";
 import { toast } from "sonner";
 
@@ -124,7 +125,7 @@ export default function OfficerLoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/officer/login", {
+      const res = await apiFetch("/api/auth/officer/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ employeeId: empId, password: pass }),
@@ -160,7 +161,7 @@ export default function OfficerLoginPage() {
     }
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/officer/register", {
+      const res = await apiFetch("/api/auth/officer/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

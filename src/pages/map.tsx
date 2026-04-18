@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
+import { apiFetch } from '@/lib/api-client';
 
 // Leaflet CSS
 import 'leaflet/dist/leaflet.css';
@@ -99,7 +100,7 @@ export default function MapPage() {
   const fetchIssues = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/issues');
+      const res = await apiFetch('/api/issues');
       const data = await res.json();
       setIssues(data.issues || []);
     } catch {

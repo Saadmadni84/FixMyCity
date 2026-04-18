@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/lib/auth-context';
+import { apiFetch } from '@/lib/api-client';
 import { toast } from 'sonner';
 
 interface Issue {
@@ -65,7 +66,7 @@ export default function CitizenDashboard() {
 
   useEffect(() => {
     if (!citizen) { navigate('/citizen-login'); return; }
-    fetch(`/api/issues?citizenId=${citizen.id}`)
+    apiFetch(`/api/issues?citizenId=${citizen.id}`)
       .then(r => r.json())
       .then(d => setIssues(d.issues || []))
       .catch(() => toast.error('Failed to load issues'))
@@ -74,7 +75,7 @@ export default function CitizenDashboard() {
 
   useEffect(() => {
     if (!citizen) return;
-    fetch(`/api/notifications?userType=citizen&userId=${citizen.id}`)
+    apiFetch(`/api/notifications?userType=citizen&userId=${citizen.id}`)
       .then(r => r.json())
       .then(d => {
         setNotifications(d.notifications || []);
@@ -85,7 +86,7 @@ export default function CitizenDashboard() {
 
   const markRead = async (id: string) => {
     try {
-      await fetch(`/api/notifications/${id}/read`, { method: 'POST' });
+      await apiFetch(`/api/notifications/${id}/read`, { method: 'POST' });
       setNotifications(prev => prev.map(n => (n.id === id ? { ...n, isRead: true } : n)));
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch {

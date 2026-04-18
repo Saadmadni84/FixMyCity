@@ -38,6 +38,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth-context";
+import { apiFetch } from "@/lib/api-client";
 import { toast } from "sonner";
 
 interface Issue {
@@ -156,7 +157,7 @@ export default function OfficerDashboard() {
   const loadNotifications = async () => {
     if (!officer) return;
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         `/api/notifications?userType=officer&userId=${officer.id}`,
       );
       const data = await res.json();
@@ -169,7 +170,7 @@ export default function OfficerDashboard() {
 
   const markRead = async (id: string) => {
     try {
-      await fetch(`/api/notifications/${id}/read`, { method: "POST" });
+      await apiFetch(`/api/notifications/${id}/read`, { method: "POST" });
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
       );
@@ -189,7 +190,7 @@ export default function OfficerDashboard() {
         params.set("wards", officer.assignedWards.join(","));
       }
 
-      const res = await fetch(`/api/issues?${params.toString()}`);
+      const res = await apiFetch(`/api/issues?${params.toString()}`);
       const data = await res.json();
       setIssues(data.issues || []);
     } catch {
@@ -203,7 +204,7 @@ export default function OfficerDashboard() {
     if (!selectedIssue || !newStatus) return;
     setUpdating(true);
     try {
-      const res = await fetch(`/api/issues/${selectedIssue.ticketId}/status`, {
+      const res = await apiFetch(`/api/issues/${selectedIssue.ticketId}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
