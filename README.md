@@ -224,8 +224,10 @@ npm run build
 ### Deploy options:
 
 - **Vercel/Netlify** - Frontend deployment
-- **Railway/Render** - Full-stack deployment
+- **Render + Aiven MySQL** - Backend + database (Railway alternative)
 - **Docker** - Containerized deployment
+
+For a step-by-step non-Railway deployment, see `DEPLOY_RENDER_AIVEN.md` and `deploy/render.yaml`.
 
 ### Full Stack Docker Deploy (Frontend + Backend + MySQL)
 
