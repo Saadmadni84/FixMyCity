@@ -227,6 +227,51 @@ npm run build
 - **Railway/Render** - Full-stack deployment
 - **Docker** - Containerized deployment
 
+### Full Stack Docker Deploy (Frontend + Backend + MySQL)
+
+This repo includes a Docker Compose setup that runs:
+
+- React frontend (served by the app server)
+- API backend routes
+- MySQL database with schema bootstrap
+
+1. Optional: configure email delivery
+
+```bash
+cp .env.deploy.example .env
+```
+
+2. Start all services
+
+```bash
+docker compose up -d --build
+```
+
+3. Open the app
+
+```text
+http://localhost:5173
+```
+
+4. Verify health endpoints
+
+```bash
+curl http://localhost:5173/api/health
+curl http://localhost:5173/api/health/email
+```
+
+5. Stop services
+
+```bash
+docker compose down
+```
+
+Notes:
+
+- Database data is persisted in the `db_data` volume.
+- MySQL schema SQL files under `drizzle/` are auto-applied on first DB init.
+- App runtime writes DB config to `NOMAD_ALLOC_DIR/config.json` for compatibility.
+
 ## 🔧 Configuration
 
 ### Environment Variables

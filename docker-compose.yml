@@ -1,0 +1,51 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: fixmycity-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: fixmycity
+      MYSQL_USER: fixmycity
+      MYSQL_PASSWORD: fixmycity_pass
+      MYSQL_ROOT_PASSWORD: root_pass_change_me
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./drizzle/0000_worthless_stick.sql:/docker-entrypoint-initdb.d/0000_worthless_stick.sql:ro
+      - ./drizzle/0001_handy_mojo.sql:/docker-entrypoint-initdb.d/0001_handy_mojo.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fixmycity-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 5173
+      NODE_ENV: production
+      NOMAD_ALLOC_DIR: /app/alloc
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: fixmycity
+      DB_PASS: fixmycity_pass
+      DB_NAME: fixmycity
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-FixMyCity Notifications <noreply@example.com>}
+    ports:
+      - "5173:5173"
+
+volumes:
+  db_data:
