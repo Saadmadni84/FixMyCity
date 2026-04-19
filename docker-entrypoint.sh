@@ -32,16 +32,21 @@ EOF
 
 echo "[entrypoint] Wrote database config to $NOMAD_ALLOC_DIR/config.json"
 
-# Wait for MySQL to accept connections before booting the app.
-node -e '
+# Render expects an open port quickly. Do not block startup there.
+if [ "${SKIP_DB_WAIT:-0}" = "1" ] || [ -n "${RENDER:-}" ]; then
+  echo "[entrypoint] Skipping database readiness wait."
+else
+  # Wait for MySQL to accept connections before booting the app.
+  # If DB is still unavailable, continue boot and rely on API-level fallbacks.
+  node -e '
 const mysql = require("mysql2/promise");
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 const cfg = {
-  host: process.env.DB_HOST || "db",
-  port: Number(process.env.DB_PORT || 3306),
-  user: process.env.DB_USER || "fixmycity",
-  password: process.env.DB_PASS || "fixmycity_pass",
-  database: process.env.DB_NAME || "fixmycity",
+  host: process.env.DB_HOST || process.env.MYSQLHOST || "db",
+  port: Number(process.env.DB_PORT || process.env.MYSQLPORT || 3306),
+  user: process.env.DB_USER || process.env.MYSQLUSER || "fixmycity",
+  password: process.env.DB_PASS || process.env.MYSQLPASSWORD || "fixmycity_pass",
+  database: process.env.DB_NAME || process.env.MYSQLDATABASE || "fixmycity",
 };
 const sslEnabled = String(process.env.DB_SSL || "false").toLowerCase() === "true";
 if (sslEnabled) {
@@ -54,7 +59,7 @@ if (sslEnabled) {
   }
 }
 (async () => {
-  for (let i = 1; i <= 60; i++) {
+  for (let i = 1; i <= maxAttempts; i++) {
     try {
       const conn = await mysql.createConnection(cfg);
       await conn.ping();
@@ -62,13 +67,14 @@ if (sslEnabled) {
       console.log("[entrypoint] Database is reachable.");
       process.exit(0);
     } catch (e) {
-      console.log(`[entrypoint] Waiting for database (${i}/60)...`);
-      await delay(2000);
+      console.log(`[entrypoint] Waiting for database (${i}/${maxAttempts})...`);
+      await delay(delayMs);
     }
   }
-  console.error("[entrypoint] Database did not become reachable in time.");
-  process.exit(1);
+  console.warn("[entrypoint] Database not reachable in time; continuing startup.");
+  process.exit(0);
 })();
 '
+fi
 
 exec npm run preview -- --host 0.0.0.0 --port "${PORT:-5173}"

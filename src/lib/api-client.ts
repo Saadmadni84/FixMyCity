@@ -1,4 +1,5 @@
-// API client for communicating with vite-plugin-api endpoints
+// API client for communicating with backend API endpoints.
+// In production, set VITE_API_URL to your deployed backend (e.g. https://example.onrender.com/api).
 
 import { apiUrl } from "./api-url";
 
