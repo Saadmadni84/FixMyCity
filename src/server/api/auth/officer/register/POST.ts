@@ -64,7 +64,9 @@ export default async function handler(req: Request, res: Response) {
       toEmail: officer.email,
       toName: officer.name,
       userRole: "officer",
-    }).catch(() => undefined);
+    }).catch((error) => {
+      console.error("Failed to send officer welcome email:", error);
+    });
 
     const token = `officer-${officer.id}-${Date.now()}`;
 

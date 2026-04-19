@@ -1,11 +1,24 @@
 import nodemailer from "nodemailer";
 
+const SMTP_HOST = process.env.SMTP_HOST || "localhost";
+const SMTP_PORT = Number(process.env.SMTP_PORT || 25);
+const SMTP_SECURE = String(process.env.SMTP_SECURE || "").toLowerCase() === "true";
+const SMTP_USER = process.env.SMTP_USER;
+const SMTP_PASS = process.env.SMTP_PASS;
+const SMTP_FROM_EMAIL = process.env.SMTP_FROM_EMAIL || "noreply@airoapp.ai";
+const SMTP_FROM_NAME = process.env.SMTP_FROM_NAME || "FixMyCity";
+
 const transporter = nodemailer.createTransport({
-  host: "localhost",
-  port: 25,
-  secure: false,
+  host: SMTP_HOST,
+  port: SMTP_PORT,
+  secure: SMTP_SECURE,
+  auth: SMTP_USER && SMTP_PASS ? { user: SMTP_USER, pass: SMTP_PASS } : undefined,
   tls: { rejectUnauthorized: false },
 });
+
+function fromAddress(label: string): string {
+  return `"${label}" <${SMTP_FROM_EMAIL}>`;
+}
 
 export async function verifyEmailTransport(): Promise<void> {
   await transporter.verify();
@@ -147,7 +160,7 @@ export async function sendStatusUpdateEmail(
   const statusLabel = STATUS_LABELS[opts.newStatus] || opts.newStatus;
 
   await transporter.sendMail({
-    from: '"FixMyCity Notifications" <noreply@airoapp.ai>',
+    from: fromAddress(`${SMTP_FROM_NAME} Notifications`),
     to: `"${opts.toName}" <${opts.toEmail}>`,
     subject: `[${opts.ticketId}] Your issue is now: ${statusLabel}`,
     html: buildEmailHtml(opts),
@@ -169,7 +182,7 @@ export async function sendOfficerAssignmentEmail(
 ): Promise<void> {
   const safeWard = opts.ward || "Assigned Ward";
   await transporter.sendMail({
-    from: '"FixMyCity Dispatch" <noreply@airoapp.ai>',
+    from: fromAddress(`${SMTP_FROM_NAME} Dispatch`),
     to: `"${opts.toName}" <${opts.toEmail}>`,
     subject: `[${opts.ticketId}] New issue assigned in ${safeWard}`,
     html: `
@@ -198,7 +211,7 @@ export async function sendWelcomeEmail(opts: WelcomeEmailOptions): Promise<void>
   const roleLabel = opts.userRole === "officer" ? "Officer" : "Citizen";
 
   await transporter.sendMail({
-    from: '"FixMyCity Team" <noreply@airoapp.ai>',
+    from: fromAddress(`${SMTP_FROM_NAME} Team`),
     to: `"${opts.toName}" <${opts.toEmail}>`,
     subject: "Welcome to FixMyCity",
     html: `
