@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { officers, type Department } from "../../../../data/store.js";
 import { parseWardsInput } from "../../../../../lib/wards.js";
+import { sendWelcomeEmail } from "../../../../lib/email.js";
 
 const DEPARTMENTS: Department[] = [
   "electricity",
@@ -58,6 +59,12 @@ export default async function handler(req: Request, res: Response) {
     };
 
     officers.push(officer);
+
+    sendWelcomeEmail({
+      toEmail: officer.email,
+      toName: officer.name,
+      userRole: "officer",
+    }).catch(() => undefined);
 
     const token = `officer-${officer.id}-${Date.now()}`;
 

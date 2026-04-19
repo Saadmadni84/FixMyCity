@@ -187,3 +187,35 @@ export async function sendOfficerAssignmentEmail(
     text: `Hello ${opts.toName},\n\nA new issue has been assigned to you.\nTicket: ${opts.ticketId}\nTitle: ${opts.issueTitle}\nWard: ${safeWard}\nLocation: ${opts.address}\n`,
   });
 }
+
+export interface WelcomeEmailOptions {
+  toEmail: string;
+  toName: string;
+  userRole: "citizen" | "officer";
+}
+
+export async function sendWelcomeEmail(opts: WelcomeEmailOptions): Promise<void> {
+  const roleLabel = opts.userRole === "officer" ? "Officer" : "Citizen";
+
+  await transporter.sendMail({
+    from: '"FixMyCity Team" <noreply@airoapp.ai>',
+    to: `"${opts.toName}" <${opts.toEmail}>`,
+    subject: "Welcome to FixMyCity",
+    html: `
+      <div style="font-family:system-ui,-apple-system,sans-serif;padding:24px;background:#f8fafc;color:#1f2937;">
+        <h2 style="margin:0 0 12px;color:#1e3a5f;">Welcome to FixMyCity 🎉</h2>
+        <p style="margin:0 0 12px;">Hello <strong>${opts.toName}</strong>,</p>
+        <p style="margin:0 0 12px;">
+          Your ${roleLabel} account has been created successfully. We're glad to have you on board.
+        </p>
+        <p style="margin:0 0 16px;">
+          You can now log in and start using FixMyCity services.
+        </p>
+        <div style="padding-top:12px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;">
+          Platform built by <strong>Saad Madni</strong>.
+        </div>
+      </div>
+    `,
+    text: `Hello ${opts.toName},\n\nWelcome to FixMyCity! Your ${roleLabel} account has been created successfully.\n\nPlatform built by Saad Madni.\n`,
+  });
+}
