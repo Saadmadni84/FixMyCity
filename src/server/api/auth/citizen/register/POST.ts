@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { citizens } from "../../../../data/store.js";
+import { sendWelcomeEmail } from "../../../../lib/email.js";
 
 function nextCitizenId(): string {
   const max = citizens.reduce((acc, c) => {
@@ -50,6 +51,12 @@ export default async function handler(req: Request, res: Response) {
     };
 
     citizens.push(citizen);
+
+    sendWelcomeEmail({
+      toEmail: citizen.email,
+      toName: citizen.name,
+      userRole: "citizen",
+    }).catch(() => undefined);
 
     const token = `citizen-${citizen.id}-${Date.now()}`;
 
