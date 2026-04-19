@@ -1,6 +1,7 @@
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import fs from "node:fs";
 import * as esbuild from "esbuild";
 import sourceMapperPlugin from "./source-mapper/src/index";
 import { devToolsPlugin } from "./dev-tools/src/vite-plugin";
@@ -8,6 +9,11 @@ import { fullStoryPlugin } from "./fullstory-plugin";
 import { errorInterceptorPlugin } from "./dev-tools/src/vite-error-interceptor";
 import { mediaVersionsPlugin } from "./dev-tools/src/vite-media-versions-plugin";
 import apiRoutes from "vite-plugin-api-routes";
+
+const API_DIR = path.resolve(__dirname, ".api");
+if (!fs.existsSync(API_DIR)) {
+  fs.mkdirSync(API_DIR, { recursive: true });
+}
 
 function extractHostname(value: string): string {
   try {
@@ -50,6 +56,12 @@ const require = createRequire(import.meta.url);`
 
 const allowedHostsList: string[] = [];
 const corsOrigins: string[] = [];
+
+function pushUnique(list: string[], value: string) {
+  if (!list.includes(value)) {
+    list.push(value);
+  }
+}
 
 if (process.env.FRONTEND_DOMAIN) {
   const frontendHost = extractHostname(process.env.FRONTEND_DOMAIN);
