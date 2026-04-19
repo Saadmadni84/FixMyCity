@@ -1,11 +1,24 @@
 import nodemailer from "nodemailer";
 
+const SMTP_HOST = process.env.SMTP_HOST || "localhost";
+const SMTP_PORT = Number(process.env.SMTP_PORT || 25);
+const SMTP_SECURE = String(process.env.SMTP_SECURE || "").toLowerCase() === "true";
+const SMTP_USER = process.env.SMTP_USER;
+const SMTP_PASS = process.env.SMTP_PASS;
+const SMTP_FROM_EMAIL = process.env.SMTP_FROM_EMAIL || "noreply@airoapp.ai";
+const SMTP_FROM_NAME = process.env.SMTP_FROM_NAME || "FixMyCity";
+
 const transporter = nodemailer.createTransport({
-  host: "localhost",
-  port: 25,
-  secure: false,
+  host: SMTP_HOST,
+  port: SMTP_PORT,
+  secure: SMTP_SECURE,
+  auth: SMTP_USER && SMTP_PASS ? { user: SMTP_USER, pass: SMTP_PASS } : undefined,
   tls: { rejectUnauthorized: false },
 });
+
+function fromAddress(label: string): string {
+  return `"${label}" <${SMTP_FROM_EMAIL}>`;
+}
 
 export async function verifyEmailTransport(): Promise<void> {
   await transporter.verify();
@@ -147,7 +160,7 @@ export async function sendStatusUpdateEmail(
   const statusLabel = STATUS_LABELS[opts.newStatus] || opts.newStatus;
 
   await transporter.sendMail({
-    from: '"FixMyCity Notifications" <noreply@airoapp.ai>',
+    from: fromAddress(`${SMTP_FROM_NAME} Notifications`),
     to: `"${opts.toName}" <${opts.toEmail}>`,
     subject: `[${opts.ticketId}] Your issue is now: ${statusLabel}`,
     html: buildEmailHtml(opts),
@@ -169,7 +182,7 @@ export async function sendOfficerAssignmentEmail(
 ): Promise<void> {
   const safeWard = opts.ward || "Assigned Ward";
   await transporter.sendMail({
-    from: '"FixMyCity Dispatch" <noreply@airoapp.ai>',
+    from: fromAddress(`${SMTP_FROM_NAME} Dispatch`),
     to: `"${opts.toName}" <${opts.toEmail}>`,
     subject: `[${opts.ticketId}] New issue assigned in ${safeWard}`,
     html: `
@@ -185,5 +198,37 @@ export async function sendOfficerAssignmentEmail(
       </div>
     `,
     text: `Hello ${opts.toName},\n\nA new issue has been assigned to you.\nTicket: ${opts.ticketId}\nTitle: ${opts.issueTitle}\nWard: ${safeWard}\nLocation: ${opts.address}\n`,
+  });
+}
+
+export interface WelcomeEmailOptions {
+  toEmail: string;
+  toName: string;
+  userRole: "citizen" | "officer";
+}
+
+export async function sendWelcomeEmail(opts: WelcomeEmailOptions): Promise<void> {
+  const roleLabel = opts.userRole === "officer" ? "Officer" : "Citizen";
+
+  await transporter.sendMail({
+    from: fromAddress(`${SMTP_FROM_NAME} Team`),
+    to: `"${opts.toName}" <${opts.toEmail}>`,
+    subject: "Welcome to FixMyCity",
+    html: `
+      <div style="font-family:system-ui,-apple-system,sans-serif;padding:24px;background:#f8fafc;color:#1f2937;">
+        <h2 style="margin:0 0 12px;color:#1e3a5f;">Welcome to FixMyCity 🎉</h2>
+        <p style="margin:0 0 12px;">Hello <strong>${opts.toName}</strong>,</p>
+        <p style="margin:0 0 12px;">
+          Your ${roleLabel} account has been created successfully. We're glad to have you on board.
+        </p>
+        <p style="margin:0 0 16px;">
+          You can now log in and start using FixMyCity services.
+        </p>
+        <div style="padding-top:12px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;">
+          Platform built by <strong>Saad Madni</strong>.
+        </div>
+      </div>
+    `,
+    text: `Hello ${opts.toName},\n\nWelcome to FixMyCity! Your ${roleLabel} account has been created successfully.\n\nPlatform built by Saad Madni.\n`,
   });
 }
