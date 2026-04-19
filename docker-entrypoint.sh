@@ -4,13 +4,14 @@ set -e
 export NOMAD_ALLOC_DIR="${NOMAD_ALLOC_DIR:-/app/alloc}"
 mkdir -p "$NOMAD_ALLOC_DIR"
 
-DB_HOST="${DB_HOST:-${MYSQLHOST:-db}}"
-DB_PORT="${DB_PORT:-${MYSQLPORT:-3306}}"
-DB_USER="${DB_USER:-${MYSQLUSER:-fixmycity}}"
-DB_PASS="${DB_PASS:-${MYSQLPASSWORD:-fixmycity_pass}}"
-DB_NAME="${DB_NAME:-${MYSQLDATABASE:-fixmycity}}"
-DB_WAIT_MAX_ATTEMPTS="${DB_WAIT_MAX_ATTEMPTS:-60}"
-DB_WAIT_DELAY_MS="${DB_WAIT_DELAY_MS:-2000}"
+DB_HOST="${DB_HOST:-db}"
+DB_PORT="${DB_PORT:-3306}"
+DB_USER="${DB_USER:-fixmycity}"
+DB_PASS="${DB_PASS:-fixmycity_pass}"
+DB_NAME="${DB_NAME:-fixmycity}"
+DB_SSL="${DB_SSL:-false}"
+DB_SSL_REJECT_UNAUTHORIZED="${DB_SSL_REJECT_UNAUTHORIZED:-false}"
+DB_SSL_CA="${DB_SSL_CA:-}"
 
 cat > "$NOMAD_ALLOC_DIR/config.json" <<EOF
 {
@@ -20,7 +21,10 @@ cat > "$NOMAD_ALLOC_DIR/config.json" <<EOF
       "PORT": "$DB_PORT",
       "USERNAME": "$DB_USER",
       "PASSWORD": "$DB_PASS",
-      "NAME": "$DB_NAME"
+      "NAME": "$DB_NAME",
+      "SSL": "$DB_SSL",
+      "SSL_REJECT_UNAUTHORIZED": "$DB_SSL_REJECT_UNAUTHORIZED",
+      "SSL_CA": "$DB_SSL_CA"
     }
   }
 }
@@ -44,8 +48,16 @@ const cfg = {
   password: process.env.DB_PASS || process.env.MYSQLPASSWORD || "fixmycity_pass",
   database: process.env.DB_NAME || process.env.MYSQLDATABASE || "fixmycity",
 };
-const maxAttempts = Number(process.env.DB_WAIT_MAX_ATTEMPTS || 60);
-const delayMs = Number(process.env.DB_WAIT_DELAY_MS || 2000);
+const sslEnabled = String(process.env.DB_SSL || "false").toLowerCase() === "true";
+if (sslEnabled) {
+  cfg.ssl = {
+    rejectUnauthorized:
+      String(process.env.DB_SSL_REJECT_UNAUTHORIZED || "false").toLowerCase() === "true",
+  };
+  if (process.env.DB_SSL_CA) {
+    cfg.ssl.ca = process.env.DB_SSL_CA;
+  }
+}
 (async () => {
   for (let i = 1; i <= maxAttempts; i++) {
     try {
@@ -65,10 +77,4 @@ const delayMs = Number(process.env.DB_WAIT_DELAY_MS || 2000);
 '
 fi
 
-if [ -f "dist/index.html" ]; then
-  echo "[entrypoint] Starting preview server from dist/."
-  exec npm run preview -- --host 0.0.0.0 --port "${PORT:-5173}"
-else
-  echo "[entrypoint] dist/ not found; starting Vite dev server fallback."
-  exec npm run dev -- --host 0.0.0.0 --port "${PORT:-5173}"
-fi
+exec npm run preview -- --host 0.0.0.0 --port "${PORT:-5173}"

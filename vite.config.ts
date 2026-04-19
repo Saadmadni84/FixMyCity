@@ -54,7 +54,7 @@ const require = createRequire(import.meta.url);`
   };
 }
 
-const allowedHosts: string[] = [];
+const allowedHostsList: string[] = [];
 const corsOrigins: string[] = [];
 
 function pushUnique(list: string[], value: string) {
@@ -65,35 +65,22 @@ function pushUnique(list: string[], value: string) {
 
 if (process.env.FRONTEND_DOMAIN) {
   const frontendHost = extractHostname(process.env.FRONTEND_DOMAIN);
-  pushUnique(allowedHosts, frontendHost);
-  pushUnique(corsOrigins, `http://${frontendHost}`);
-  pushUnique(corsOrigins, `https://${frontendHost}`);
+  allowedHostsList.push(frontendHost);
+  corsOrigins.push(`http://${frontendHost}`, `https://${frontendHost}`);
 }
 if (process.env.ALLOWED_ORIGINS) {
   const origins = process.env.ALLOWED_ORIGINS.split(",");
-  origins.forEach((origin) => {
-    pushUnique(allowedHosts, extractHostname(origin));
-    pushUnique(corsOrigins, origin);
-  });
+  allowedHostsList.push(...origins.map(extractHostname));
+  corsOrigins.push(...origins);
 }
 if (process.env.VITE_PARENT_ORIGIN) {
-  pushUnique(allowedHosts, extractHostname(process.env.VITE_PARENT_ORIGIN));
-  pushUnique(corsOrigins, process.env.VITE_PARENT_ORIGIN);
-}
-
-// Render web services expose this hostname env var; include it so Vite does not block requests.
-if (process.env.RENDER_EXTERNAL_HOSTNAME) {
-  pushUnique(allowedHosts, extractHostname(process.env.RENDER_EXTERNAL_HOSTNAME));
-}
-if (process.env.RENDER_EXTERNAL_URL) {
-  pushUnique(allowedHosts, extractHostname(process.env.RENDER_EXTERNAL_URL));
-}
-if (allowedHosts.length === 0) {
-  allowedHosts.push("*");
+  allowedHostsList.push(extractHostname(process.env.VITE_PARENT_ORIGIN));
+  corsOrigins.push(process.env.VITE_PARENT_ORIGIN);
 }
 if (corsOrigins.length === 0) {
   corsOrigins.push("*");
 }
+const allowedHosts = allowedHostsList.length > 0 ? allowedHostsList : true;
 
 export default defineConfig(({ mode }) => ({
   // Vercel static builds should use plain Vite output (dist/) without API-routes build hooks.

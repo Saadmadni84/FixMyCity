@@ -29,6 +29,7 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { apiFetch } from "@/lib/api-client";
 import { toast } from "sonner";
+import { apiUrl } from "@/lib/api-url";
 
 const wards = Array.from({ length: 20 }, (_, i) => `Ward ${i + 1}`);
 
@@ -85,7 +86,7 @@ export default function CitizenLoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await apiFetch("/api/auth/citizen/login", {
+      const res = await fetch(apiUrl("/api/auth/citizen/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ uid: loginUid, password: loginPass }),
@@ -113,7 +114,7 @@ export default function CitizenLoginPage() {
     }
     setLoading(true);
     try {
-      const res = await apiFetch("/api/auth/citizen/register", {
+      const res = await fetch(apiUrl("/api/auth/citizen/register"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

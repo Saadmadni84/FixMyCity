@@ -224,10 +224,10 @@ npm run build
 ### Deploy options:
 
 - **Vercel/Netlify** - Frontend deployment
-- **Render + Aiven MySQL** - Backend + database (Railway alternative)
+- **Render + TiDB Cloud (MySQL-compatible)** - Backend + database (Railway alternative)
 - **Docker** - Containerized deployment
 
-For a step-by-step non-Railway deployment, see `DEPLOY_RENDER_AIVEN.md` and `deploy/render.yaml`.
+For a step-by-step non-Railway deployment (including Vercel frontend wiring), see `DEPLOY_RENDER_AIVEN.md` and `deploy/render.yaml`.
 
 ### Full Stack Docker Deploy (Frontend + Backend + MySQL)
 
@@ -282,7 +282,7 @@ Copy `env.example` to `.env` and configure:
 
 ```env
 VITE_APP_NAME=V8 App Template
-VITE_API_URL=http://localhost:5173/api
+VITE_API_URL=http://localhost:5173
 NODE_ENV=development
 PORT=5173
 ```
