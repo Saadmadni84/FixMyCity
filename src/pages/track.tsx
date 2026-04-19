@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
+import { apiUrl } from "@/lib/api-url";
 
 interface Issue {
   id: string;
@@ -137,7 +138,7 @@ export default function TrackPage() {
     setLoading(true);
     setSearched(true);
     try {
-      const res = await fetch(`/api/issues/${searchId}`);
+      const res = await fetch(apiUrl(`/api/issues/${searchId}`));
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setIssue(data.issue);

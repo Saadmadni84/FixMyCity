@@ -48,29 +48,27 @@ const require = createRequire(import.meta.url);`
   };
 }
 
-const allowedHosts: string[] = [];
+const allowedHostsList: string[] = [];
 const corsOrigins: string[] = [];
 
 if (process.env.FRONTEND_DOMAIN) {
   const frontendHost = extractHostname(process.env.FRONTEND_DOMAIN);
-  allowedHosts.push(frontendHost);
+  allowedHostsList.push(frontendHost);
   corsOrigins.push(`http://${frontendHost}`, `https://${frontendHost}`);
 }
 if (process.env.ALLOWED_ORIGINS) {
   const origins = process.env.ALLOWED_ORIGINS.split(",");
-  allowedHosts.push(...origins.map(extractHostname));
+  allowedHostsList.push(...origins.map(extractHostname));
   corsOrigins.push(...origins);
 }
 if (process.env.VITE_PARENT_ORIGIN) {
-  allowedHosts.push(extractHostname(process.env.VITE_PARENT_ORIGIN));
+  allowedHostsList.push(extractHostname(process.env.VITE_PARENT_ORIGIN));
   corsOrigins.push(process.env.VITE_PARENT_ORIGIN);
-}
-if (allowedHosts.length === 0) {
-  allowedHosts.push("*");
 }
 if (corsOrigins.length === 0) {
   corsOrigins.push("*");
 }
+const allowedHosts = allowedHostsList.length > 0 ? allowedHostsList : true;
 
 export default defineConfig(({ mode }) => ({
   // Vercel static builds should use plain Vite output (dist/) without API-routes build hooks.

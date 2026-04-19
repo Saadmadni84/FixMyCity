@@ -16,6 +16,42 @@ function normalizeCommerceApiBaseUrlEnv() {
   process.env.GODADDY_API_BASE_URL = `https://${normalizedHost}`;
 }
 
+
+function parseAllowedOrigins() {
+  const rawOrigins = process.env.CORS_ORIGIN || "";
+  return rawOrigins
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+}
+
+function applyCors(server) {
+  const allowedOrigins = parseAllowedOrigins();
+
+  server.use((req, res, next) => {
+    const requestOrigin = req.headers.origin;
+
+    if (requestOrigin) {
+      if (allowedOrigins.length === 0 || allowedOrigins.includes(requestOrigin)) {
+        res.setHeader("Access-Control-Allow-Origin", requestOrigin);
+      }
+      res.setHeader("Vary", "Origin");
+    } else if (allowedOrigins.length === 0) {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+    }
+
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+    if (req.method === "OPTIONS") {
+      res.status(204).end();
+      return;
+    }
+
+    next();
+  });
+}
+
 async function autoSeed() {
   try {
     const { db } = await import('./db/client.js');
@@ -49,6 +85,7 @@ export const viteServerBefore = (server, viteServer) => {
   normalizeCommerceApiBaseUrlEnv();
   server.use(express.json());
   server.use(express.urlencoded({ extended: true }));
+  applyCors(server);
   autoSeed();
 };
 
@@ -94,6 +131,7 @@ export const serverBefore = (server) => {
 
   server.use(express.json());
   server.use(express.urlencoded({ extended: true }));
+  applyCors(server);
 
   server.use(express.static(join(__dirname, "client"), {
     setHeaders(res, filePath) {
