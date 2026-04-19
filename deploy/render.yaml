@@ -12,6 +12,10 @@ services:
         value: 10000
       - key: NOMAD_ALLOC_DIR
         value: /app/alloc
+      - key: APP_START_MODE
+        value: dev
+      - key: SKIP_DB_WAIT
+        value: "1"
       - key: DB_HOST
         sync: false
       - key: DB_PORT
@@ -28,7 +32,7 @@ services:
         value: "false"
       - key: DB_SSL_CA
         sync: false
-      - key: CORS_ORIGIN
+      - key: ALLOWED_ORIGINS
         sync: false
       - key: SMTP_HOST
         sync: false

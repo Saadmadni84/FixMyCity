@@ -65,17 +65,26 @@ function pushUnique(list: string[], value: string) {
 
 if (process.env.FRONTEND_DOMAIN) {
   const frontendHost = extractHostname(process.env.FRONTEND_DOMAIN);
-  allowedHostsList.push(frontendHost);
-  corsOrigins.push(`http://${frontendHost}`, `https://${frontendHost}`);
+  pushUnique(allowedHostsList, frontendHost);
+  pushUnique(corsOrigins, `http://${frontendHost}`);
+  pushUnique(corsOrigins, `https://${frontendHost}`);
 }
 if (process.env.ALLOWED_ORIGINS) {
   const origins = process.env.ALLOWED_ORIGINS.split(",");
-  allowedHostsList.push(...origins.map(extractHostname));
-  corsOrigins.push(...origins);
+  origins.forEach((origin) => {
+    pushUnique(allowedHostsList, extractHostname(origin));
+    pushUnique(corsOrigins, origin);
+  });
 }
 if (process.env.VITE_PARENT_ORIGIN) {
-  allowedHostsList.push(extractHostname(process.env.VITE_PARENT_ORIGIN));
-  corsOrigins.push(process.env.VITE_PARENT_ORIGIN);
+  pushUnique(allowedHostsList, extractHostname(process.env.VITE_PARENT_ORIGIN));
+  pushUnique(corsOrigins, process.env.VITE_PARENT_ORIGIN);
+}
+if (process.env.RENDER_EXTERNAL_HOSTNAME) {
+  pushUnique(allowedHostsList, extractHostname(process.env.RENDER_EXTERNAL_HOSTNAME));
+}
+if (process.env.RENDER_EXTERNAL_URL) {
+  pushUnique(allowedHostsList, extractHostname(process.env.RENDER_EXTERNAL_URL));
 }
 if (corsOrigins.length === 0) {
   corsOrigins.push("*");

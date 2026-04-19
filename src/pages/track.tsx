@@ -17,7 +17,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { apiFetch } from "@/lib/api-client";
 import { toast } from "sonner";
 import { apiUrl } from "@/lib/api-url";
 

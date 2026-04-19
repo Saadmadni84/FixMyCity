@@ -4,14 +4,16 @@ set -e
 export NOMAD_ALLOC_DIR="${NOMAD_ALLOC_DIR:-/app/alloc}"
 mkdir -p "$NOMAD_ALLOC_DIR"
 
-DB_HOST="${DB_HOST:-db}"
-DB_PORT="${DB_PORT:-3306}"
-DB_USER="${DB_USER:-fixmycity}"
-DB_PASS="${DB_PASS:-fixmycity_pass}"
-DB_NAME="${DB_NAME:-fixmycity}"
+DB_HOST="${DB_HOST:-${MYSQLHOST:-db}}"
+DB_PORT="${DB_PORT:-${MYSQLPORT:-3306}}"
+DB_USER="${DB_USER:-${MYSQLUSER:-fixmycity}}"
+DB_PASS="${DB_PASS:-${MYSQLPASSWORD:-fixmycity_pass}}"
+DB_NAME="${DB_NAME:-${MYSQLDATABASE:-fixmycity}}"
 DB_SSL="${DB_SSL:-false}"
 DB_SSL_REJECT_UNAUTHORIZED="${DB_SSL_REJECT_UNAUTHORIZED:-false}"
 DB_SSL_CA="${DB_SSL_CA:-}"
+DB_WAIT_MAX_ATTEMPTS="${DB_WAIT_MAX_ATTEMPTS:-60}"
+DB_WAIT_DELAY_MS="${DB_WAIT_DELAY_MS:-2000}"
 
 cat > "$NOMAD_ALLOC_DIR/config.json" <<EOF
 {
@@ -58,6 +60,8 @@ if (sslEnabled) {
     cfg.ssl.ca = process.env.DB_SSL_CA;
   }
 }
+const maxAttempts = Number(process.env.DB_WAIT_MAX_ATTEMPTS || 60);
+const delayMs = Number(process.env.DB_WAIT_DELAY_MS || 2000);
 (async () => {
   for (let i = 1; i <= maxAttempts; i++) {
     try {
@@ -77,4 +81,21 @@ if (sslEnabled) {
 '
 fi
 
-exec npm run preview -- --host 0.0.0.0 --port "${PORT:-5173}"
+START_MODE="${APP_START_MODE:-}"
+if [ -z "$START_MODE" ]; then
+  if [ -n "${RENDER:-}" ]; then
+    START_MODE="dev"
+  elif [ -f "dist/index.html" ]; then
+    START_MODE="preview"
+  else
+    START_MODE="dev"
+  fi
+fi
+
+if [ "$START_MODE" = "preview" ]; then
+  echo "[entrypoint] Starting preview server from dist/."
+  exec npm run preview -- --host 0.0.0.0 --port "${PORT:-5173}"
+fi
+
+echo "[entrypoint] Starting Vite dev server (API routes enabled)."
+exec npm run dev -- --host 0.0.0.0 --port "${PORT:-5173}"
