@@ -1,6 +1,7 @@
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import fs from "node:fs";
 import * as esbuild from "esbuild";
 import sourceMapperPlugin from "./source-mapper/src/index";
 import { devToolsPlugin } from "./dev-tools/src/vite-plugin";
@@ -8,6 +9,11 @@ import { fullStoryPlugin } from "./fullstory-plugin";
 import { errorInterceptorPlugin } from "./dev-tools/src/vite-error-interceptor";
 import { mediaVersionsPlugin } from "./dev-tools/src/vite-media-versions-plugin";
 import apiRoutes from "vite-plugin-api-routes";
+
+const API_DIR = path.resolve(__dirname, ".api");
+if (!fs.existsSync(API_DIR)) {
+  fs.mkdirSync(API_DIR, { recursive: true });
+}
 
 function extractHostname(value: string): string {
   try {
@@ -51,19 +57,36 @@ const require = createRequire(import.meta.url);`
 const allowedHosts: string[] = [];
 const corsOrigins: string[] = [];
 
+function pushUnique(list: string[], value: string) {
+  if (!list.includes(value)) {
+    list.push(value);
+  }
+}
+
 if (process.env.FRONTEND_DOMAIN) {
   const frontendHost = extractHostname(process.env.FRONTEND_DOMAIN);
-  allowedHosts.push(frontendHost);
-  corsOrigins.push(`http://${frontendHost}`, `https://${frontendHost}`);
+  pushUnique(allowedHosts, frontendHost);
+  pushUnique(corsOrigins, `http://${frontendHost}`);
+  pushUnique(corsOrigins, `https://${frontendHost}`);
 }
 if (process.env.ALLOWED_ORIGINS) {
   const origins = process.env.ALLOWED_ORIGINS.split(",");
-  allowedHosts.push(...origins.map(extractHostname));
-  corsOrigins.push(...origins);
+  origins.forEach((origin) => {
+    pushUnique(allowedHosts, extractHostname(origin));
+    pushUnique(corsOrigins, origin);
+  });
 }
 if (process.env.VITE_PARENT_ORIGIN) {
-  allowedHosts.push(extractHostname(process.env.VITE_PARENT_ORIGIN));
-  corsOrigins.push(process.env.VITE_PARENT_ORIGIN);
+  pushUnique(allowedHosts, extractHostname(process.env.VITE_PARENT_ORIGIN));
+  pushUnique(corsOrigins, process.env.VITE_PARENT_ORIGIN);
+}
+
+// Render web services expose this hostname env var; include it so Vite does not block requests.
+if (process.env.RENDER_EXTERNAL_HOSTNAME) {
+  pushUnique(allowedHosts, extractHostname(process.env.RENDER_EXTERNAL_HOSTNAME));
+}
+if (process.env.RENDER_EXTERNAL_URL) {
+  pushUnique(allowedHosts, extractHostname(process.env.RENDER_EXTERNAL_URL));
 }
 if (allowedHosts.length === 0) {
   allowedHosts.push("*");
