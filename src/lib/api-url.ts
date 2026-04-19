@@ -1,6 +1,9 @@
 const configuredApiUrl = (import.meta.env.VITE_API_URL || "").trim();
 
-const API_ORIGIN = configuredApiUrl.replace(/\/$/, "");
+const normalizedBase = configuredApiUrl.replace(/\/+$/, "");
+const API_ORIGIN = normalizedBase.endsWith("/api")
+  ? normalizedBase.slice(0, -4)
+  : normalizedBase;
 
 export function apiUrl(path: string): string {
   if (!path) return path;
