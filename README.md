@@ -1,342 +1,185 @@
-# V8 App Template
+# FixMyCity
 
-A modern, production-ready web application template built with Vite, React, and TypeScript. Designed for AI-assisted development with component introspection, layout systems, and excellent developer experience.
+A production-grade civic issue reporting platform engineered with the mindset of a senior software developer focused on reliability, scalability, and clean system boundaries.
 
-## 🚀 Features
+## Live Deployments
 
-- **⚡ Lightning Fast**: Vite for instant hot module replacement and optimized builds
-- **🎯 Type Safe**: Full TypeScript coverage across frontend and backend
-- **🎨 Beautiful UI**: shadcn/ui components with Tailwind CSS
-- **🧠 AI-Friendly**: Component introspection for AI development tools
-- **📱 Responsive**: Mobile-first design with modern CSS
-- **🔧 Developer Experience**: Hot reload, linting, formatting, and testing setup
-- **🚀 Production Ready**: SSR support, optimized builds, and deployment-ready
+- Frontend: https://fixmycitysm.vercel.app
+- Backend: https://fixmycity-v3vl.onrender.com
 
-## 🛠️ Tech Stack
+## Product Overview
+
+FixMyCity enables citizens to report civic issues, track resolution status, and engage with municipal workflows through role-based dashboards for citizens and officers.
+
+Core capabilities:
+
+- Citizen issue reporting with category, location, and media metadata.
+- Officer-side triage and status transitions (`submitted` -> `under_review` -> `assigned` -> `fixed`).
+- Ward-aware assignment routing and progress tracking.
+- In-app notification pipeline with email integration hooks.
+- Public map and ticket tracking experience.
+
+## System Design Approach
+
+This project is intentionally structured around strong system design fundamentals:
+
+- Clear separation of concerns: UI, API routes, domain utilities, and infrastructure are isolated by layer.
+- Configuration-driven runtime: environment variables govern deployment behavior per platform.
+- Fail-safe startup strategy: backend startup avoids hard crashes when dependencies are delayed.
+- Progressive resilience: API fallback patterns prevent full UX failure when DB connectivity is transient.
+- Deployability-first architecture: supports local Docker, Render-hosted backend, and Vercel-hosted frontend.
+
+## Architecture
 
 ### Frontend
 
-- **React 18+** - Modern React with hooks and concurrent features
-- **TypeScript 5** - Full type safety across the application
-- **Vite 5** - Fast build tool and dev server with HMR
-- **Tailwind CSS 3** - Utility-first CSS framework
-- **shadcn/ui** - Beautiful, accessible component library
-- **React Router DOM** - Client-side routing
-- **Framer Motion** - Smooth animations and transitions
+- React + TypeScript + Vite
+- Tailwind + shadcn/ui
+- Route-driven pages with explicit auth contexts for citizen/officer workflows
+- API base URL abstraction (`src/lib/api-url.ts`) for portable multi-environment deployments
 
 ### Backend
 
-- **Node.js API** - Simple health check and utilities
-- **TypeScript** - Type-safe backend development
+- Express-compatible API via Vite API routes
+- Typed route handlers grouped by bounded feature areas (`auth`, `issues`, `notifications`, `stats`)
+- Health and operational endpoints for runtime verification
 
-### Development Tools
+### Data Layer
 
-- **ESLint 9** - Code linting
-- **Prettier** - Code formatting
-- **Vitest** - Fast unit testing
-- **TypeScript ESLint** - TypeScript-specific linting
+- MySQL schema with Drizzle definitions and SQL migrations
+- In-memory fallback behavior for graceful degradation in constrained environments
 
-> **Note:** SSR support with vite-plugin-ssr has been temporarily removed due to compatibility issues with the directory structure. This can be re-added later when the plugin is updated or replaced with a more stable alternative.
+### Deployment Topology
 
-## 📁 Project Structure
+- Vercel: frontend hosting
+- Render: backend service
+- MySQL provider: managed external database (Render/TiDB/Aiven/etc.)
 
-```
-v8-app-template/
-├── src/
-│   ├── components/       # React components
-│   │   ├── ui/           # shadcn/ui base components (40+ components)
-│   │   └── Spinner.tsx
-│   ├── layouts/          # Layout systems
-│   │   ├── RootLayout.tsx    # Centralized layout wrapper
-│   │   ├── Website.tsx       # Structural container
-│   │   ├── Dashboard.tsx     # Dashboard layout
-│   │   ├── RootLayout.md     # RootLayout documentation
-│   │   ├── Website.md        # Website layout documentation
-│   │   └── parts/            # Layout components
-│   │       ├── Header.tsx
-│   │       └── Footer.tsx
-│   ├── pages/            # Page components (content only)
-│   │   ├── index.tsx     # Homepage
-│   │   └── _404.tsx      # 404 page
-│   ├── lib/              # Utilities and API
-│   │   ├── utils.ts      # Utility functions
-│   │   └── api-client.ts # API client
-│   ├── api/              # Backend API routes
-│   │   └── health.ts     # Health check endpoint
-│   ├── styles/           # Global styles
-│   │   └── globals.css
-│   ├── test/             # Test setup
-│   │   └── setup.ts
-│   ├── App.tsx           # Root application component
-│   ├── main.tsx          # Application entry point
-│   ├── router.ts         # Route definitions
-│   └── routes.tsx        # Route components
-├── dev-tools/            # Development mode enhancements
-├── source-mapper/        # AI introspection plugin
-├── public/               # Static assets
-└── scripts/              # Development scripts
+## Repository Structure
+
+```text
+src/
+  components/          Reusable UI and interaction components
+  layouts/             Shell/layout composition
+  pages/               Route-level screens (citizen, officer, map, report, track)
+  lib/                 API URL client, auth context, utility modules
+  server/
+    api/               Feature-oriented API route handlers
+    db/                Schema + DB client integrations
+    data/              In-memory store and seed behavior
+
+deploy/
+  render.yaml          Render blueprint for backend runtime
+
+drizzle/
+  *.sql                Database migrations
+
+docker-entrypoint.sh   Runtime bootstrap for container deployments
+Dockerfile             Container build specification
+docker-compose.yml     Local full-stack orchestration
 ```
 
-## 📜 Available Scripts
+## Key API Surface
 
-- `npm run dev` - Start development server with hot reload
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build locally
-- `npm run test` - Run Vitest unit tests
-- `npm run lint` - Run ESLint code linting
-- `npm run type-check` - Run TypeScript type checking
-- `npm run setup` - Initialize project with dependencies
+- `GET /api/health`
+- `GET /api/issues`
+- `POST /api/issues`
+- `GET /api/issues/:ticketId`
+- `PUT /api/issues/:ticketId/status`
+- `GET /api/notifications`
+- `POST /api/notifications/:id/read`
+- `POST /api/auth/citizen/login`
+- `POST /api/auth/citizen/register`
+- `POST /api/auth/officer/login`
+- `POST /api/auth/officer/register`
 
-## 🎨 UI Components
+## Operational Characteristics
 
-This template includes shadcn/ui components that are:
+- Host-aware backend startup for Render (`allowedHosts` and external host normalization).
+- CORS policy controlled through environment configuration (`ALLOWED_ORIGINS`).
+- Optional DB wait strategy to avoid cold-start failures in managed PaaS environments.
+- Typed compile checks enforced via `npm run type-check`.
 
-- **Accessible** - Built with Radix UI primitives
-- **Customizable** - Easy to modify and extend
-- **Consistent** - Design system with CSS variables
-- **Copy-paste friendly** - Own your components
+## Local Development
 
-The template includes 40+ pre-configured shadcn/ui components:
+### Prerequisites
 
-- **Layout**: Card, Separator, Tabs, Sheet, Dialog
-- **Forms**: Button, Input, Textarea, Select, Checkbox, Switch
-- **Navigation**: Navigation Menu, Breadcrumb, Pagination
-- **Feedback**: Alert, Badge, Progress, Skeleton, Sonner
-- **Data Display**: Table, Avatar, Calendar, Hover Card
-- **Overlays**: Popover, Tooltip, Alert Dialog, Drawer
-- **Interactive**: Accordion, Collapsible, Command, Context Menu
+- Node.js 22+
+- npm
+- Docker (optional but recommended)
 
-To add new components:
+### Start in dev mode
 
 ```bash
-npx shadcn-ui@latest add component-name
+npm install
+npm run dev
 ```
 
-## 🧠 AI Integration
-
-### Component Introspection
-
-The custom source-mapper plugin adds metadata to components in development:
-
-```html
-<div
-  data-source-file="/src/components/Button.tsx"
-  data-source-line="15"
-  data-source-component="Button"
->
-  Click Me
-</div>
-```
-
-### Development Mode Integration
-
-The dev-tools package provides:
-
-- **Element selection**: Click to identify components
-- **Live editing**: Modify component props in real-time
-- **Source mapping**: Navigate directly to component source
-- **AI integration**: Enhanced context for AI development tools
-
-### AI-Friendly Patterns
-
-- **Consistent naming**: PascalCase components, camelCase hooks
-- **Clear file structure**: Logical separation of concerns
-- **Type-first approach**: Comprehensive TypeScript types
-- **Standard patterns**: CRUD operations, form handling, error boundaries
-
-## 🗃️ API & Layouts
-
-### API Routes
-
-The template includes:
-
-- `GET /api/health` - Health check endpoint
-- Extensible API client setup in `src/lib/api-client.ts`
-
-### Layout System
-
-**RootLayout Pattern** (Recommended for multi-page sites):
-
-Configure header and footer once in `App.tsx`, applies to all pages:
-
-```tsx
-// src/App.tsx
-const headerConfig = {
-  logo: { text: "MyApp" },
-  navItems: [
-    { href: "/", label: "Home" },
-    { href: "/about", label: "About" },
-  ],
-};
-
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: (
-      <RootLayout config={{ header: headerConfig, footer: footerConfig }}>
-        <Outlet />
-      </RootLayout>
-    ),
-    children: routes,
-  },
-]);
-```
-
-Pages become simple content components:
-
-```tsx
-// src/pages/home.tsx
-export default function HomePage() {
-  return <div>Your content here</div>;
-}
-```
-
-**Available Layouts**:
-
-- **RootLayout** (`src/layouts/RootLayout.tsx`) - Centralized header/footer wrapper
-- **Website** (`src/layouts/Website.tsx`) - Structural container (used by RootLayout)
-- **Dashboard** (`src/layouts/Dashboard.tsx`) - Admin panels and dashboards
-
-See `src/layouts/*.md` for detailed usage documentation.
-
-## 🧪 Testing
-
-Run tests with:
+### Type-check and quality gates
 
 ```bash
-npm run test
+npm run type-check
+npm run lint
 ```
 
-The template includes:
-
-- **Vitest** - Fast unit testing framework
-- **React Testing Library** - Component testing utilities
-- **Jest DOM** - Custom Jest matchers
-
-## 📦 Deployment
-
-### Build for production:
-
-```bash
-npm run build
-```
-
-### Deploy options:
-
-- **Vercel/Netlify** - Frontend deployment
-- **Render + TiDB Cloud (MySQL-compatible)** - Backend + database (Railway alternative)
-- **Docker** - Containerized deployment
-
-For a step-by-step non-Railway deployment (including Vercel frontend wiring), see `DEPLOY_RENDER_AIVEN.md` and `deploy/render.yaml`.
-
-### Full Stack Docker Deploy (Frontend + Backend + MySQL)
-
-This repo includes a Docker Compose setup that runs:
-
-- React frontend (served by the app server)
-- API backend routes
-- MySQL database with schema bootstrap
-
-1. Optional: configure email delivery
-
-```bash
-cp .env.deploy.example .env
-```
-
-2. Start all services
+### Full stack via Docker Compose
 
 ```bash
 docker compose up -d --build
 ```
 
-3. Open the app
-
-```text
-http://localhost:5173
-```
-
-4. Verify health endpoints
+Validate:
 
 ```bash
 curl http://localhost:5173/api/health
-curl http://localhost:5173/api/health/email
+curl http://localhost:5173/api/stats
 ```
 
-5. Stop services
+## Production Deployment Notes
 
-```bash
-docker compose down
-```
+### Vercel (Frontend)
 
-Notes:
-
-- Database data is persisted in the `db_data` volume.
-- MySQL schema SQL files under `drizzle/` are auto-applied on first DB init.
-- App runtime writes DB config to `NOMAD_ALLOC_DIR/config.json` for compatibility.
-
-## 🔧 Configuration
-
-### Environment Variables
-
-Copy `env.example` to `.env` and configure:
+Set:
 
 ```env
-VITE_APP_NAME=V8 App Template
-VITE_API_URL=http://localhost:5173
-NODE_ENV=development
-PORT=5173
+VITE_API_URL=https://fixmycity-v3vl.onrender.com
 ```
 
-### Custom Plugins
+The frontend automatically appends `/api/...` paths where required.
 
-**Source Mapper Plugin**: Adds component introspection for AI tools
-**Dev Tools Plugin**: Enables development mode enhancements
-**Fullstory Integration**: Optional user analytics (configurable)
+### Render (Backend)
 
-Configure in `vite.config.ts`:
+Recommended environment variables:
 
-```typescript
-import { defineConfig } from "vite";
-import { sourceMapperPlugin } from "./source-mapper";
-import { devToolsPlugin } from "./dev-tools";
-
-export default defineConfig({
-  plugins: [sourceMapperPlugin(), devToolsPlugin()],
-});
+```env
+NODE_ENV=production
+PORT=10000
+ALLOWED_ORIGINS=https://fixmycitysm.vercel.app
+APP_START_MODE=dev
+SKIP_DB_WAIT=1
 ```
 
-## 🎯 Best Practices
+Database variables:
 
-### Component Architecture
+```env
+DB_HOST=
+DB_PORT=
+DB_USER=
+DB_PASS=
+DB_NAME=
+DB_SSL=true
+DB_SSL_REJECT_UNAUTHORIZED=false
+```
 
-- Keep components small and focused
-- Use composition over inheritance
-- Extract reusable logic into hooks
-- Prefer function components with hooks
+## Engineering Highlights
 
-### State Management
+- Designed and implemented with a long-horizon maintainability mindset.
+- Focused on practical distributed-system concerns: startup safety, runtime portability, and deployment fault isolation.
+- Prioritized explicit interfaces over hidden coupling across frontend, backend, and infrastructure layers.
 
-- Keep local state in components with useState/useReducer
-- Use React Context for app-wide state (theme, auth)
-- Consider external libraries (Zustand, Redux Toolkit) for complex state
-- Leverage layout props for shared configuration
+## Author
 
-### Layout Usage
-
-- Use RootLayout for multi-page sites (configure in `App.tsx`)
-- Pages should only contain content, not layout concerns
-- Define header/footer once, applies to all pages
-- Follow layout documentation in `src/layouts/*.md`
-- Never duplicate header/footer config across pages
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if needed
-5. Run linting and tests
-6. Submit a pull request
+Built and maintained by Saad Madni with a 15+ year engineering mindset emphasizing system design, production reliability, and clean architecture.
 
 ## 📄 License
 
